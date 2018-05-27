@@ -1,0 +1,58 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/Users/HP/Desktop/hw3_rxtx
+vmac
+Z0 DXx6 sv_std 3 std 0 22 WmjPaeP=7F5?QFXzJ>D[Q2
+!s110 1525194158
+!i10b 1
+!s100 a^]WnIY]N<nbc=;7JM3=`2
+IBllWEH]=HFTgkeW7V6o?81
+Z1 VDg1SIo80bB@j0V0VzS_@n1
+!s105 mac_sv_unit
+S1
+Z2 dC:/Users/HP/Desktop/Project
+w1525194151
+8C:/Users/HP/Desktop/mac.sv
+FC:/Users/HP/Desktop/mac.sv
+L0 1
+Z3 OP;L;10.4a;61
+r1
+!s85 0
+31
+!s108 1525194158.000000
+!s107 C:/Users/HP/Desktop/mac.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/HP/Desktop/mac.sv|
+!s101 -O0
+!i113 1
+Z4 o-work work -sv -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
+vmac_tb
+R0
+!s110 1525192597
+!i10b 1
+!s100 3BM@ln^c9Dl_<KYbF67;[3
+Ii1<mEZ2IL[VUnk;=]7@NC1
+R1
+!s105 mac_tb_sv_unit
+S1
+R2
+w1525192588
+8C:/Users/HP/Desktop/mac_tb.sv
+FC:/Users/HP/Desktop/mac_tb.sv
+L0 1
+R3
+r1
+!s85 0
+31
+!s108 1525192597.000000
+!s107 C:/Users/HP/Desktop/mac_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/HP/Desktop/mac_tb.sv|
+!s101 -O0
+!i113 1
+R4

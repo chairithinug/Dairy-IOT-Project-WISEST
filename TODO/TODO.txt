@@ -1,0 +1,5 @@
+Linear regression (Coefficient) activate/deactivate button
+2 text boxes to insert coeff.
+write both data to a csv file
+moving average after done.
+break csv into many files (say after 10 mins)
