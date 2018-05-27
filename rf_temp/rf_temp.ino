@@ -27,10 +27,10 @@ void loop() {
     rfidserial.end();
     index = 0;
     digitalWrite(rst_pow, HIGH);
-    delay(200);
+    delay(95);
     digitalWrite(rst_pow, LOW);
     rfidserial.begin(9600);
-    delay(200);
+    delay(95);
   }
   if (rfidserial.overflow())
   {
