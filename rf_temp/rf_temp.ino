@@ -3,7 +3,7 @@ SoftwareSerial rfidserial(10, 11);
 
 #define rst_pow 2 //restart the reader to keep reading
 
-uint8_t compare = B10000000;
+const uint8_t compare = B10000000;
 uint8_t data_read, data_shift;
 
 uint8_t index = 0;
