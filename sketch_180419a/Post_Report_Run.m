@@ -15,8 +15,8 @@ cla
 close all
 
 % Read sensor file and thermocouple file
-data_reading = csvread('Readings 2018-05-25-15-35-57.csv');
-data_thermo = xlsread('5-25-2018 (Sensor 1) (2).xlsx');
+data_reading = csvread('Sensor1_5K.csv');
+data_thermo = xlsread('5-30-2018_sensor1a_t.xlsx');
 
 data_cal = zeros(length(data_reading),1);
 time_thermo = zeros(length(data_thermo),1);
@@ -42,7 +42,7 @@ moving_mean = movmean(data_reading(:,8), 3); % moving average with width of 3. a
 % Readjust the sensor data
 k = 1;
 for j = 1:length(time_thermo)
-   while (k < length(data_reading) && time_thermo(j) >= round(data_reading(k,9))) % compare generated thermo time to rel_time
+   while (k < length(data_reading) && time_thermo(j) >= round(data_reading(k,7))) % compare generated thermo time to rel_time
        k = k+1;
    end
    data_resampled(j) = moving_mean(k);
@@ -57,16 +57,14 @@ hold on
 plot(time_thermo, data_thermo(:,2),'LineWidth', 1);
 plot(time_thermo, data_thermo(:,3),'LineWidth', 1);
 plot(time_thermo, mean_thermo,'LineWidth', 1);
-plot(data_reading(:,9), data_reading(:,8),'LineWidth', 1);
-% plot(data_reading(:,9), data_cal,'LineWidth', 1);
-plot(data_reading(:,9), moving_mean,'LineWidth', 1);
+plot(data_reading(:,7), data_reading(:,8),'LineWidth', 1);
+plot(data_reading(:,7), moving_mean,'LineWidth', 1);
 plot(time_thermo, data_resampled,'LineWidth', 1);
 grid
 
 xlabel('Time (second)')
 ylabel('Temperature (C)')
 title('Temperature vs Time')
-% legend('TC_1','TC_2','TC_m_e_a_n','Implant','Moving mean','Resampled data')
 legend('TC_1','TC_2','TC_3','TC_m_e_a_n','Implant','Moving mean','Resampled data')
 hold off
 
@@ -91,9 +89,9 @@ p = coeffvalues(f);
 data_cal_2 = p(1)*data_reading(:,8)+p(2);
 
 figure('Name','Applied This Coefficients','NumberTitle','off');
-plot(data_reading(:,9), data_reading(:,8),'LineWidth', 2);
+plot(data_reading(:,7), data_reading(:,8),'LineWidth', 2);
 hold on
-plot(data_reading(:,9), data_cal_2,'LineWidth', 2);
+plot(data_reading(:,7), data_cal_2,'LineWidth', 2);
 plot(time_thermo, mean_thermo,'LineWidth', 2);
 xlabel('Time (second)')
 ylabel('Temperature (C)')
@@ -102,15 +100,16 @@ legend('Implant','Implant_c_a_l_2','TC_m_e_a_n')
 hold off
 grid
 
-%% Apply Mean Sensor Coeffs. From JJ-1-4
-p = [1.10057 -4.7069];
+%% Apply Mean Sensor Coeffs. From 1-5
+% p = [1.0916 -4.4078];
+p = [1.1092 -4.7602];
 data_cal_2 = p(1)*data_reading(:,8)+p(2);
 data_resampled_cal_2 = p(1)*data_resampled+p(2);
 
 figure('Name','Applied Known Coefficients','NumberTitle','off');
-plot(data_reading(:,9), data_reading(:,8),'LineWidth', 2);
+plot(data_reading(:,7), data_reading(:,8),'LineWidth', 2);
 hold on
-plot(data_reading(:,9), data_cal_2,'LineWidth', 2);
+plot(data_reading(:,7), data_cal_2,'LineWidth', 2);
 plot(time_thermo, mean_thermo,'LineWidth', 2);
 xlabel('Time (second)')
 ylabel('Temperature (C)')
