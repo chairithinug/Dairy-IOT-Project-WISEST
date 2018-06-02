@@ -1,9 +1,9 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 
-#define RFM95_CS 8
+#define RFM95_CS 8 // specific for Feather M0 Lora
 #define RFM95_RST 4
-#define RFM95_INT 3
+#define RFM95_INT 3 
 #define RF95_FREQ 915.0
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
@@ -17,30 +17,24 @@ void setup()
     delay(1);
   }
   delay(100);
-
-  Serial.println("Feather LoRa TX Test!");
-
   digitalWrite(RFM95_RST, LOW);
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
-
   while (!rf95.init()) {
     Serial.println("LoRa radio init failed");
     while (1);
   }
-  Serial.println("LoRa radio init OK!");
 
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
     while (1);
   }
-  Serial.print("Set Freq to: ");
+  Serial.print("Freq: ");
   Serial.println(RF95_FREQ);
   rf95.setTxPower(23, false);
 }
-
-int16_t packetnum = 0;
+//int16_t packetnum = 0;
 
 void loop()
 {
@@ -57,8 +51,8 @@ void loop()
     delay(1000);
 
     //char radiopacket[20] = {ch,' ','#'};
-    itoa(packetnum++, radiopacket+i, 10); //+ length of data //ltoa (long val, char *s, int radix)
-    Serial.print("Sending data:");
+    //itoa(packetnum++, radiopacket+i, 10); //+ length of data //ltoa (long val, char *s, int radix)
+    Serial.print("Data:");
     Serial.println(radiopacket);
     radiopacket[19] = 0;
 
@@ -66,8 +60,8 @@ void loop()
     rf95.send((uint8_t *)radiopacket, 20);
 
     delay(10);
-    rf95.waitPacketSent();
-    Serial.println("Sent successfully!");
+    rf95.waitPacketSent(); //flush
+    Serial.println("Sent");
   }
   //==============================================Waiting for a reply part====================================
 

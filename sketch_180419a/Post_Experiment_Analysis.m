@@ -15,8 +15,8 @@ cla
 close all
 
 % Read sensor file and thermocouple file
-data_reading = csvread('Sensor1_5K.csv');
-data_thermo = xlsread('5-30-2018_sensor1a_t.xlsx');
+data_reading = csvread('Sensor3.csv');
+data_thermo = xlsread('5-29-2018_sensor3_t.xlsx');
 
 data_cal = zeros(length(data_reading),1);
 time_thermo = zeros(length(data_thermo),1);
@@ -101,8 +101,7 @@ hold off
 grid
 
 %% Apply Mean Sensor Coeffs. From 1-5
-% p = [1.0916 -4.4078];
-p = [1.1092 -4.7602];
+p = [1.1078 -4.79753];
 data_cal_2 = p(1)*data_reading(:,8)+p(2);
 data_resampled_cal_2 = p(1)*data_resampled+p(2);
 
@@ -120,14 +119,21 @@ grid
 
 %% Average Error
 
-diff = mean_thermo - data_resampled_cal_2;
+diff = abs(mean_thermo - data_resampled_cal_2); % Absolute value of difference
 
 idxValid_diff = ~isnan(diff); % Remove Nan.
 
 percent_off = diff(idxValid_diff)./mean_thermo(idxValid_diff)*100; 
-percent_off_abs = abs(percent_off); % Absolute different percentage
 
-Off = mean(percent_off_abs);
+% Percent
+POff = mean(percent_off);
+PMax = max(percent_off);
+PMin = min(percent_off);
+
+% Absolute value
+AOff = mean(diff(idxValid_diff));
+AMax = max(diff(idxValid_diff));
+AMin = min(diff(idxValid_diff));
 
 %% Plotting 3 sets of coeff. This should NOT be used in general!
 

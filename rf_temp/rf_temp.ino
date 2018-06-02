@@ -12,6 +12,11 @@ void setup() {
   pinMode(rst_pow, OUTPUT);
   Serial.begin(9600);
   rfidserial.begin(9600);
+  
+  while (!Serial) {
+    delay(1);
+  }
+  
   digitalWrite(rst_pow, LOW);
   digitalWrite(8, HIGH);
 }
@@ -44,13 +49,13 @@ void loop() {
 void padding(uint8_t data) { // adding leading zeros so the data is 8-bit wide
   shift_count = 0;
   data_shift = data;
-  while (data_shift < compare && shift_count <7)
+  while (data_shift < compare && shift_count < 8)
   {
     Serial.print(0, BIN);
     data_shift = data_shift << 1;
     shift_count = shift_count + 1;
     delay(1);
-    
+
   }
   Serial.print(data, BIN);
   Serial.flush(); // add to test its functionality
