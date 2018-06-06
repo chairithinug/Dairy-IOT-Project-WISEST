@@ -4,7 +4,7 @@
 % then re-adjust the length of the sensor file to be the same as the
 % thermocouple file
 % so that they can be used to find a linear regression coefficient
-% find mean of two thermocouples and use the number to perform a linear
+% find mean of three thermocouples and use the number to perform a linear
 % regression
 
 %% Generate, Re-adjust, Calculate 
