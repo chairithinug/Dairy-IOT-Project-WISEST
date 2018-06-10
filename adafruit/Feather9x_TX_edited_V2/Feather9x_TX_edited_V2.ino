@@ -102,7 +102,7 @@ void padding(uint8_t data) { // adding leading zeros so the data is 8-bit wide
   Serial.flush(); // add to test its functionality
 }
 
-char 0pad2Array(uint8_t data) { // adding leading zeros so the data is 8-bit wide
+char pad2Array(uint8_t data) { // adding leading zeros so the data is 8-bit wide
   char paddedData[10]; // should use only 8 spots
   memset(&paddedData[0], 0, sizeof(paddedData)); // clear memory
   for (int j=0; j<8; j++)
