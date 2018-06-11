@@ -7,9 +7,13 @@ This is a private repository for my project at WISEST lab during Summer 2018 as 
 4.	MATLAB 2018a (earlier versions might not support all functionalities) installed 
 5.	MATLAB Support Package for Arduino Hardware installed and setup properly	
 # What these programs do
+## Run_Improved_V2.mlapp
 Run_Improved_V2.mlapp gathers the number of samples and displays the raw data plot and the calibrated plot. Linear regression coefficients can be applied and adjusted before the reading starts. After the reading has done, the data will be save automatically and once again before the program is closed. The LED light indicates the data availability. It becomes yellow when there is a problem with the input data, becomes red if no input data is read, turns black when the program finishes or is ready. Once data is collected, it is automatically saved to a CSV file with a timestamp.
+
+## Run_Monitoring.mlapp
 Run_Monitoring.mlapp is similar to Run_Improved_v2.mlapp. It keeps reading data until it is stopped by users. It has an ability to breakdown data and save data into multiple files every X second specified by users. In addition to those LEDs, Run_Monitoring.mlapp has a blue LED indicating a pause. Unlike the first program, this program does NOT save when closed the program window. However, the data should be saved when “Stop” is pressed.
-# How to use "Run_Improved_V2.mlapp" for known sample number
+# How to use
+## "Run_Improved_V2.mlapp" for known sample number
 1.	Connect Arduino to your PC.
 2.	Double-click on the program “Run_Improved_V2.mlapp”.
 3.	Change port name to match the port Arduino connected to. You can also check with Device Manager in your Control Panel and look for Port section.
@@ -24,7 +28,7 @@ Run_Monitoring.mlapp is similar to Run_Improved_v2.mlapp. It keeps reading data 
 12.	Once you are satisfied with data, close the window. Doing this prompts a dialogue block.
 13.	Select “Yes” if you wish to exit and save data or select “No” if you accidentally click on the close button.
 
-# How to use "Run_Monitoring.mlapp" for monitoring
+## "Run_Monitoring.mlapp" for monitoring
 1.	Connect Arduino to your PC.
 2.	Double-click on the program “Run_Monitoring.mlapp”.
 3.	Change port name to match the port Arduino connected to. You can also check with Device Manager in your Control Panel and look for Port section.
