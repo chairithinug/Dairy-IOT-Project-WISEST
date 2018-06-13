@@ -29,6 +29,7 @@ void loop() {
   if (Rfidserial.available() > 0) {
     data_read[index] = Rfidserial.read();
     index++;
+    delay(1);
   }
   if (index >= 30) {
     transmit(data_read);
