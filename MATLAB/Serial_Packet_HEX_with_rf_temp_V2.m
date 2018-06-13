@@ -9,7 +9,7 @@ count = 0;
 error_count = 0;
 flushinput(s);
 tic;
-while count<=5000
+while count<=1000
     data1 = fscanf(s);
     count = count + 1;
     
