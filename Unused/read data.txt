@@ -1,0 +1,26 @@
+2 48 48 70 48 65 70 66 68 50 49 52 56 51 48 48 49 48 48 48 48 48 48 48 48 48 48 122 133 3
+
+2 ----------HHpHepfhPI--------- ----RVQH--- DF AF ---------RESERVED------------ CSX CSI 3 
+
+-1 when detects nothing
+
+
+ID 081000009472
+
+For example: on the tag shows: “900250000023921”(Dec format 900 in the front,then card number 250000023921)
+
+Module output:
+
+02 31 37 31 41 39 32 35 33 41 33 34 38 33 30 30 31 30 30 30 30 30 30 30 30 30 30 07 F8 03
+
+Equal ASCII:[1]171A9253A34830010000000000?
+
+We can find card number is 171A9253A3, country number is 483 (LSB First)
+
+483 Flip 384(Hex) Convert 900(Dec)
+
+Translate these number to Dec format,card number equal: 250000023921 ,
+
+Country number equal 900
+
+And “31 37 31 41 39 32 35 33 41 33 34 38 33 30 30 31 30 30 30 30 30 30 30 30 30 30” made all XOR caculate,we got the answer is 07 (check sum result) . F8 is 07’s bitwise invert result.
