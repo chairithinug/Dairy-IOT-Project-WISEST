@@ -9,6 +9,8 @@ SoftwareSerial rfidSerial(10, 11);
 #define RF95_FREQ 915.0
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+#define ID
+
 #define RST_POW 2 // Reset transistor to keep reading
 #define RST_READER 8 // Reset reader always HIGH
 #define COMPARE 128 // 1000_0000
