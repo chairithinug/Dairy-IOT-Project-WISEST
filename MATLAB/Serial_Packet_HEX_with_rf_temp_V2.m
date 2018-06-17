@@ -1,7 +1,7 @@
 %% Setup
 clear
 delete(instrfind);
-s = serial('COM4');
+s = serial('COM5');
 fopen(s);
 set(s,'timeout',5);
 %% Reading

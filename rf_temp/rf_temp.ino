@@ -30,9 +30,9 @@ void loop() {
     padding(data_read);
     index++;
   }
-  if (index >= BYTE_NUM_LENGTH) {
+  if (index >= BYTE_NUM_LENGTH) {{
     Serial.println("");
-    Serial.flush();
+    Serial.flush(); // moved from padding function. The rest is intact.
     rfidSerial.end();
     index = 0;
     digitalWrite(RST_POW, HIGH);
