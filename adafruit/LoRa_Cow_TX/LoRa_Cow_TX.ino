@@ -1,7 +1,5 @@
 #include <SPI.h>
 #include <RH_RF95.h>
-#include <SoftwareSerial.h>
-SoftwareSerial rfidSerial(10, 11);
 
 #define RFM95_CS 8
 #define RFM95_RST 4
@@ -9,26 +7,21 @@ SoftwareSerial rfidSerial(10, 11);
 #define RF95_FREQ 915.0
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-#define ID
+#define ID 1
 
-#define RST_POW 2 // Reset transistor to keep reading
-#define RST_READER 8 // Reset reader always HIGH
-#define COMPARE 128 // 1000_0000
-#define BYTE_NUM_LENGTH 30 // Number of bytes receieved from sensor
+#define RST_POW 6 // Reset transistor to keep reading
+#define RST_READER 5 // Reset reader always HIGH
+#define DATA_NUM 30 // Number of bytes receieved from sensor
+#define LED 13
+
+const int PACKET_LENGTH = 3 * DATA_NUM;
+byte data_read, data_shift;
+int shift_count = 0;
+int index_byte = 0;
+char packet[PACKET_LENGTH] = {};
 
 void setup()
 {
-  // Setup reader module
-  pinMode(RST_POW, OUTPUT);
-  pinMode(RST_READER, OUTPUT);
-  rfidSerial.begin(9600); // 9600 or 115200?
-  while (!rfidSerial) {
-    delay(1);
-  }
-  digitalWrite(RST_POW, LOW);
-  digitalWrite(RST_READER, HIGH);
-
-  
   // Setup radio channel communication
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
@@ -60,35 +53,72 @@ void setup()
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
+
+  // Setup reader module
+  pinMode(RST_POW, OUTPUT);
+  pinMode(RST_READER, OUTPUT);
+  pinMode(LED, OUTPUT);
+  Serial1.begin(9600);
+
+  digitalWrite(RST_POW, HIGH);
+  delay(10);
+  digitalWrite(RST_POW, LOW);
+  delay(10);
+
+  digitalWrite(RST_READER, HIGH);
+
+  Serial1.flush();
 }
-
-int16_t packetnum = 0;  // packet counter, we increment per xmission
-
-byte data_read, data_shift;
-byte shift_count = 0;
-byte index = 0;
 
 void loop()
 {
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
-  Serial.println("Transmitting..."); // Send a message to rf95_server
+  // ReadSerial
+  if (Serial1.available() > 0) {
+    data_read = Serial1.read();
+    itoa(data_read, packet + index_byte * 3, 10);
+    index_byte = index_byte + 1;
+  }
+  if (index_byte >= DATA_NUM) {
+    printPacket(packet, PACKET_LENGTH);
 
-  char radiopacket[20] = "Hello World #";
-  itoa(packetnum++, radiopacket + 13, 10);
-  Serial.print("Sending ");
-  Serial.println(radiopacket);
-  radiopacket[19] = 0;
+    digitalWrite(LED, LOW);
+    Serial1.end();
+    // Transmit
+    Serial.print("Sending ");
+    Serial.println(packet);
 
-  Serial.println("Sending...");
-  delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
+    Serial.println("Sending...");
+    delay(10);
+    rf95.send((uint8_t *)packet, PACKET_LENGTH);
 
-  Serial.println("Waiting for packet to complete...");
-  delay(10);
-  rf95.waitPacketSent();
-
+    Serial.println("Waiting for packet to complete...");
+    delay(10);
+    rf95.waitPacketSent();
+    
+    memset(&packet[0], 0, sizeof(packet)); // clear memory
+    index_byte = 0;
+    digitalWrite(RST_POW, HIGH);
+    delay(250);
+    digitalWrite(RST_POW, LOW);
+    Serial1.begin(9600);
+    Serial1.flush();
+    delay(250);
+    digitalWrite(LED, HIGH);
+  }
 
   // Now wait for a reply
+  //  waitReply();
+}
+
+void readSerial() {
+
+}
+
+void transmit(char* packet, int PACKET_LENGTH) {
+
+}
+
+void waitReply() {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
@@ -112,18 +142,12 @@ void loop()
   {
     Serial.println("No reply, is there a listener around?");
   }
-
 }
 
-void padding(uint8_t data) { // adding leading zeros so the data is 8-bit wide
-  shift_count = 0;
-  data_shift = data;
-  while (data_shift < COMPARE && shift_count < 8)
-  {
-    Serial.print(0, BIN);
-    data_shift = data_shift << 1;
-    shift_count = shift_count + 1;
-    delay(1);
+void printPacket(char packet[], int packet_len) {
+  for (int i = 0 ; i < packet_len; i++) {
+    Serial.print(packet[i]);
   }
-  Serial.print(data, BIN);
+  Serial.println("");
 }
+
