@@ -68,6 +68,7 @@ void setup()
   digitalWrite(RST_READER, HIGH);
 
   Serial1.flush();
+  memset(&packet[0], 120, sizeof(packet)); // clear memory
 }
 
 void loop()
@@ -75,7 +76,12 @@ void loop()
   // ReadSerial
   if (Serial1.available() > 0) {
     data_read = Serial1.read();
-    itoa(data_read, packet + index_byte * 3, 10);
+    if (index_byte == 0){
+      itoa(data_read, packet + 1, 16);
+    }
+    else {
+      itoa(data_read, packet + index_byte * 2, 16);
+    }
     index_byte = index_byte + 1;
   }
   if (index_byte >= DATA_NUM) {
@@ -94,8 +100,8 @@ void loop()
     Serial.println("Waiting for packet to complete...");
     delay(10);
     rf95.waitPacketSent();
-    
-    memset(&packet[0], 0, sizeof(packet)); // clear memory
+
+    memset(&packet[0], 120, sizeof(packet)); // clear memory
     index_byte = 0;
     digitalWrite(RST_POW, HIGH);
     delay(250);
