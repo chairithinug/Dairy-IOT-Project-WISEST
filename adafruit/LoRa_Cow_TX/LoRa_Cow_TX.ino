@@ -26,9 +26,9 @@ void setup()
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
   Serial.begin(115200);
-  while (!Serial) {
-    delay(1);
-  }
+  //  while (!Serial) {
+  //    delay(1);
+  //  }
   delay(100);
   Serial.println("Feather LoRa TX Test!");
   // Manual reset
@@ -74,46 +74,29 @@ void setup()
 void loop()
 {
   digitalWrite(LED, LOW);
-  // ReadSerial
 
+  // ReadSerial
   if (Serial1.available() > 0) {
     data_read = Serial1.read();
-    if (data_read == 2 && index_byte == 0) // for the first 2
+    if ((data_read == 2 && index_byte == 0) || index_byte != 0) // for the first 2
     {
       sprintf(packet + index_byte * 2, "%0.2x", data_read);
       index_byte = index_byte + 1;
     }
     else
     {
-      if (index_byte != 0) {
-        sprintf(packet + index_byte * 2, "%0.2x", data_read);
-        index_byte = index_byte + 1;
-      }
-      else
-      {
-        index_byte = 0; // might not need
-      }
+        index_byte = 0;
     }
   }
   if (index_byte >= DATA_NUM) {
     printPacket(packet, PACKET_LENGTH);
-
     digitalWrite(LED, HIGH);
     Serial1.end();
     // Transmit
-    Serial.print("Sending ");
-    Serial.println(packet);
-
-    //    Serial.println("Sending...");
-    delay(10);
-    rf95.send((uint8_t *)packet, PACKET_LENGTH);
-
-    //    Serial.println("Waiting for packet to complete...");
-    delay(10);
-    rf95.waitPacketSent();
-
+    transmit(packet, PACKET_LENGTH);
     memset(&packet[0], 120, sizeof(packet)); // clear memory with x
     index_byte = 0;
+    
     digitalWrite(RST_POW, HIGH);
     delay(250);
     digitalWrite(RST_POW, LOW);
@@ -126,28 +109,30 @@ void loop()
   // Now wait for a reply
   //  waitReply();
 }
-
-void readSerial() {
-
-}
-
-void transmit(char* packet, int PACKET_LENGTH) {
-
+void transmit(char packet[], int PACKET_LENGTH) {
+  Serial.print("Sending ");
+  Serial.println(packet);
+  //    Serial.println("Sending...");
+  delay(10);
+  rf95.send((uint8_t *)packet, PACKET_LENGTH);
+  //    Serial.println("Waiting for packet to complete...");
+  delay(10);
+  rf95.waitPacketSent();
 }
 
 void waitReply() {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  Serial.println("Waiting for reply...");
+//  Serial.println("Waiting for reply...");
   if (rf95.waitAvailableTimeout(1000))
   {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len))
     {
-      Serial.print("Got reply: ");
+      Serial.print("Got :");
       Serial.println((char*)buf);
-      Serial.print("RSSI: ");
+      Serial.print(" RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
     }
     else
@@ -157,29 +142,14 @@ void waitReply() {
   }
   else
   {
-    Serial.println("No reply, is there a listener around?");
+//    Serial.println("No reply, is there a listener around?");
   }
 }
 
 void printPacket(char packet[], int packet_len) {
   for (int i = 0 ; i < packet_len; i++) {
     Serial.print(packet[i]);
-    //    Serial.print("(");
-    //    Serial.print(i);
-    //    Serial.print(") ");
   }
   Serial.println("");
-}
-
-void PrintHex8(uint8_t *data, uint8_t length) // prints 8-bit data in hex with leading zeroes
-{
-  Serial.print("0x");
-  for (int i = 0; i < length; i++) {
-    if (data[i] < 0x10) {
-      Serial.print("0");
-    }
-    Serial.print(data[i], HEX);
-    Serial.print(" ");
-  }
 }
 
