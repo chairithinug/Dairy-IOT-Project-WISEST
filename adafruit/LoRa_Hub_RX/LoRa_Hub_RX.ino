@@ -62,17 +62,11 @@ void loop()
     if (rf95.recv(buf, &len))
     {
       digitalWrite(LED, HIGH);
-      RH_RF95::printBuffer("Received: ", buf, len);
+      //RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
-      Serial.println((char*)buf);
-       Serial.print("RSSI: ");
+      Serial.print((char*)buf);
+      Serial.print(" RSSI: "); // received signal strength indicator (the less negative the better)
       Serial.println(rf95.lastRssi(), DEC);
-
-      // Send a reply
-      uint8_t data[] = "And hello back to you";
-      rf95.send(data, sizeof(data));
-      rf95.waitPacketSent();
-      Serial.println("Sent a reply");
       digitalWrite(LED, LOW);
     }
     else

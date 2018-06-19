@@ -14,7 +14,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 #define DATA_NUM 30 // Number of bytes receieved from sensor
 #define LED 13
 
-const int PACKET_LENGTH = 3 * DATA_NUM;
+const int PACKET_LENGTH = 2 * DATA_NUM;
 byte data_read, data_shift;
 int shift_count = 0;
 int index_byte = 0;
@@ -68,40 +68,51 @@ void setup()
   digitalWrite(RST_READER, HIGH);
 
   Serial1.flush();
-  memset(&packet[0], 120, sizeof(packet)); // clear memory
+  memset(&packet[0], 120, sizeof(packet)); // initialize memory with x
 }
 
 void loop()
 {
+  digitalWrite(LED, LOW);
   // ReadSerial
+
   if (Serial1.available() > 0) {
     data_read = Serial1.read();
-    if (index_byte == 0){
-      itoa(data_read, packet + 1, 16);
+    if (data_read == 2 && index_byte == 0) // for the first 2
+    {
+      sprintf(packet + index_byte * 2, "%0.2x", data_read);
+      index_byte = index_byte + 1;
     }
-    else {
-      itoa(data_read, packet + index_byte * 2, 16);
+    else
+    {
+      if (index_byte != 0) {
+        sprintf(packet + index_byte * 2, "%0.2x", data_read);
+        index_byte = index_byte + 1;
+      }
+      else
+      {
+        index_byte = 0; // might not need
+      }
     }
-    index_byte = index_byte + 1;
   }
   if (index_byte >= DATA_NUM) {
     printPacket(packet, PACKET_LENGTH);
 
-    digitalWrite(LED, LOW);
+    digitalWrite(LED, HIGH);
     Serial1.end();
     // Transmit
     Serial.print("Sending ");
     Serial.println(packet);
 
-    Serial.println("Sending...");
+    //    Serial.println("Sending...");
     delay(10);
     rf95.send((uint8_t *)packet, PACKET_LENGTH);
 
-    Serial.println("Waiting for packet to complete...");
+    //    Serial.println("Waiting for packet to complete...");
     delay(10);
     rf95.waitPacketSent();
 
-    memset(&packet[0], 120, sizeof(packet)); // clear memory
+    memset(&packet[0], 120, sizeof(packet)); // clear memory with x
     index_byte = 0;
     digitalWrite(RST_POW, HIGH);
     delay(250);
@@ -109,7 +120,7 @@ void loop()
     Serial1.begin(9600);
     Serial1.flush();
     delay(250);
-    digitalWrite(LED, HIGH);
+    digitalWrite(LED, LOW);
   }
 
   // Now wait for a reply
@@ -153,7 +164,22 @@ void waitReply() {
 void printPacket(char packet[], int packet_len) {
   for (int i = 0 ; i < packet_len; i++) {
     Serial.print(packet[i]);
+    //    Serial.print("(");
+    //    Serial.print(i);
+    //    Serial.print(") ");
   }
   Serial.println("");
+}
+
+void PrintHex8(uint8_t *data, uint8_t length) // prints 8-bit data in hex with leading zeroes
+{
+  Serial.print("0x");
+  for (int i = 0; i < length; i++) {
+    if (data[i] < 0x10) {
+      Serial.print("0");
+    }
+    Serial.print(data[i], HEX);
+    Serial.print(" ");
+  }
 }
 
