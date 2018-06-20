@@ -68,7 +68,7 @@ void setup()
   digitalWrite(RST_READER, HIGH);
 
   Serial1.flush();
-  memset(&packet[0], 120, sizeof(packet)); // initialize memory with x
+  memset(&packet[0], 0, sizeof(packet)); // initialize memory with null
 }
 
 void loop()
@@ -94,7 +94,7 @@ void loop()
     Serial1.end();
     // Transmit
     transmit(packet, PACKET_LENGTH);
-    memset(&packet[0], 120, sizeof(packet)); // clear memory with x
+    memset(&packet[0], 0, sizeof(packet)); // clear memory with null
     index_byte = 0;
     
     digitalWrite(RST_POW, HIGH);
@@ -149,6 +149,9 @@ void waitReply() {
 void printPacket(char packet[], int packet_len) {
   for (int i = 0 ; i < packet_len; i++) {
     Serial.print(packet[i]);
+    Serial.print("(");
+    Serial.print(i);
+    Serial.print(") ");
   }
   Serial.println("");
 }

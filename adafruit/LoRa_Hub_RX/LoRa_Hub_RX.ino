@@ -53,21 +53,21 @@ void setup()
 
 void loop()
 {
+  digitalWrite(LED, LOW);
   if (rf95.available())
   {
+    digitalWrite(LED, HIGH);
+    delay(100);
     // Should be a message for us now
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
-
     if (rf95.recv(buf, &len))
-    {
-      digitalWrite(LED, HIGH);
-      //RH_RF95::printBuffer("Received: ", buf, len);
+    {     
+//      RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
-      Serial.print((char*)buf);
+      Serial.print((char*) buf);
       Serial.print(" RSSI: "); // received signal strength indicator (the less negative the better)
-      Serial.println(rf95.lastRssi(), DEC);
-      digitalWrite(LED, LOW);
+      Serial.println(rf95.lastRssi(), DEC);      
     }
     else
     {
