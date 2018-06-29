@@ -3,14 +3,18 @@ String AP = "iPhone";       // CHANGE ME
 String PASS = "risktaker"; // CHANGE ME
 String API = "I3N8WV2Z2SV5C3EW";   // CHANGE ME
 String HOST = "api.thingspeak.com";
-String PORT = "80";
+String PORT_NET = "80";
 String field = "field1";
 int countTrueCommand;
 int countTimeCommand;
 boolean found = false;
 int valSensor = 1;
 
+#define LED 5
+
 void setup() {
+  pinMode(LED, OUTPUT);
+  
   Serial.begin(9600);
   Serial1.begin(115200);
   sendCommand("AT", 5, "OK");
@@ -21,10 +25,12 @@ void loop() {
   valSensor = getSensorData();
   String getData = "GET /update?api_key=" + API + "&" + field + "=" + String(valSensor);
   sendCommand("AT+CIPMUX=1", 5, "OK");
-  sendCommand("AT+CIPSTART=0,\"TCP\",\"" + HOST + "\"," + PORT, 15, "OK");
+  sendCommand("AT+CIPSTART=0,\"TCP\",\"" + HOST + "\"," + PORT_NET, 15, "OK");
   sendCommand("AT+CIPSEND=0," + String(getData.length() + 4), 4, ">");
+  digitalWrite(LED, HIGH);
   Serial1.println(getData);
   delay(1500);
+  digitalWrite(LED, LOW);
   countTrueCommand++;
   sendCommand("AT+CIPCLOSE=0", 5, "OK");
 }

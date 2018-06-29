@@ -84,28 +84,24 @@ void loop()
       index_byte = index_byte + 1;
     }
     else
-    {
-        index_byte = 0;
-    }
+      index_byte = 0;
   }
   if (index_byte >= DATA_NUM) {
     printPacket(packet, PACKET_LENGTH);
     digitalWrite(LED, HIGH);
     Serial1.end();
-    // Transmit
+    
     transmit(packet, PACKET_LENGTH);
     memset(&packet[0], 0, sizeof(packet)); // clear memory with null
     index_byte = 0;
-    
     digitalWrite(RST_POW, HIGH);
-    delay(250);
+    delay(10000);
     digitalWrite(RST_POW, LOW);
     Serial1.begin(9600);
     Serial1.flush();
-    delay(250);
+    delay(10000);
     digitalWrite(LED, LOW);
   }
-
   // Now wait for a reply
   //  waitReply();
 }
@@ -124,7 +120,7 @@ void waitReply() {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-//  Serial.println("Waiting for reply...");
+  //  Serial.println("Waiting for reply...");
   if (rf95.waitAvailableTimeout(1000))
   {
     // Should be a reply message for us now
@@ -142,7 +138,7 @@ void waitReply() {
   }
   else
   {
-//    Serial.println("No reply, is there a listener around?");
+    //    Serial.println("No reply, is there a listener around?");
   }
 }
 
