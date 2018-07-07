@@ -15,11 +15,11 @@ String PASS = "";
 String API = "I3N8WV2Z2SV5C3EW"; // ThingSpeak.com Write API
 String HOST = "api.thingspeak.com";
 String PORT_NET = "80";
-String field = "field1";
+String field1 = "field1";
+String field2 = "field2";
 int countTrueCommand;
 int countTimeCommand;
 boolean found = false;
-int valSensor = 1;
 
 void setup()
 {
@@ -44,7 +44,7 @@ void loop()
     uint8_t len = sizeof(buf);
     if (rf95.recv(buf, &len))
     {
-      Serial.print((char*) buf);
+      Serial.println((char*) buf);
       //Serial.print(" RSSI: "); // received signal strength indicator (the less negative the better)
       //Serial.println(rf95.lastRssi(), DEC);
     }
@@ -52,7 +52,7 @@ void loop()
       Serial.println("Receive failed");
 
     // Posting to channel
-    String getData = "GET /update?api_key=" + API + "&" + field + "=x" + String((char*) buf); // Added x at the beginning so that it is considered string in Matlab table.
+    String getData = "GET /update?api_key=" + API + "&" + field1 + "=x" + String((char*) buf) + "&" + field2 + "=" + rf95.lastRssi(); // Added x at the beginning so that it is considered string in Matlab table.
     sendCommand("AT+CIPMUX=1", 5, "OK");
     sendCommand("AT+CIPSTART=0,\"TCP\",\"" + HOST + "\"," + PORT_NET, 15, "OK");
     sendCommand("AT+CIPSEND=0," + String(getData.length() + 4), 4, ">");
