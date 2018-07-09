@@ -25,7 +25,7 @@ void setup()
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
   Serial.begin(115200);
-  radio_init();
+
   Serial1.begin(9600);
   //  Serial1.write("SD2\r"); // Set default mode to Animal Tag
   memset(&packet[0], 0, sizeof(packet)); // initialize memory with null
@@ -34,6 +34,8 @@ void setup()
   Serial.println("Ready");
   //  Serial1.write("SRA\r"); // Enable the reader to read as opposed to SRD
 }
+
+byte CRC = 0;
 
 void loop()
 {
@@ -52,14 +54,27 @@ void loop()
       id = !id;
     }
     else {
+      if (index_packet == 45) // 46th number but before increment
+      {
+        c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
+      }
       Serial.write(c);
       Serial.flush();
       packet[index_packet++] = c;
+      if ((index_packet >= 17 && index_packet != 20 && index_packet != 33 && index_packet != 35 && index_packet < 37) || index_packet >= 43) {
+
+        CRC ^= c;
+      }
+      if (index_packet == 48)
+      {
+        Serial.print(" Checksum: ");
+        Serial.print(CRC);
+        CRC = 0;
+      }
     }
     if (index_packet >= PACKET_LENGTH)
     {
       Serial.println(" Transmitted");
-      transmit(packet, PACKET_LENGTH);
       index_packet = 0;
       memset(&packet[0], 0, sizeof(packet)); // clear memory with null
     }
@@ -86,57 +101,7 @@ void loop()
       int b = Serial1.read(); // Clear response of SRA command
       count_out++;
     }
-    delay(PERIOD/32); // Must be at least 100 ms
+    delay(PERIOD / 32); // Must be at least 100 ms
     //    Serial.println();
   }
-}
-
-void radio_init() {
-  pinMode(RFM95_RST, OUTPUT);
-  // Manual reset
-  digitalWrite(RFM95_RST, LOW);
-  delay(10);
-  digitalWrite(RFM95_RST, HIGH);
-  delay(10);
-  while (!rf95.init()) {
-    Serial.println("LoRa failed");
-    Serial.flush();
-    while (1);
-  }
-  Serial.println("LoRa OK!");
-  Serial.flush();
-  // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
-  if (!rf95.setFrequency(RF95_FREQ)) {
-    Serial.println("setFrequency failed");
-    Serial.flush();
-    while (1);
-  }
-  Serial.print("Freq: ");
-  Serial.println(RF95_FREQ);
-  Serial.flush();
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-  // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
-  // you can set transmitter powers from 5 to 23 dBm:
-  rf95.setTxPower(5, false);
-}
-
-void battery_level() {
-  float vbat = analogRead(VBATPIN);
-  vbat *= 2;    // we divided by 2, so multiply back
-  vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-  vbat /= 1024; // convert to voltage
-  Serial.print("Battery: ");
-  Serial.println(vbat);
-  Serial.flush();
-}
-
-void transmit(char packet[], int PACKET_LENGTH) {
-  //  Serial.println("Sending");
-  delay(10);
-  rf95.send((uint8_t *)packet, PACKET_LENGTH);
-  delay(10);
-  rf95.waitPacketSent();
-  //  Serial.println("End Sending");
-  Serial.flush();
 }
