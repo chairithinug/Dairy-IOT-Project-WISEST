@@ -8,20 +8,29 @@
 #define RF95_FREQ 915.0
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-#define PERIOD 4000// how long roughly (ms) between two reading
+#define PERIOD 20000// how long roughly (ms) between two reading
 
 #define LED 13 // On-board LED
 #define VBATPIN A7 // Pin 9 (analog 7)
+//#define RST_POW 6 // Reset transistor to keep reading
 
 const int PACKET_LENGTH = 48;
+const int RADIO_PACKET_LENGTH = 23;
 const int HALF_PERIOD = PERIOD / 2;
-int index_packet = 0;
-char packet[PACKET_LENGTH] = {};
+int index_data = 0;
+int index_radio = 0;
+char packet[PACKET_LENGTH] = {}; // Contains raw data
+char radiopacket[RADIO_PACKET_LENGTH] = {}; // Contains edited data that is going to be sent
 boolean id = true;
-boolean done = false;
 
 void setup()
 {
+  //  pinMode(RST_POW, OUTPUT);
+  //  digitalWrite(RST_POW, HIGH);
+  //  delay(10);
+  //  digitalWrite(RST_POW, LOW);
+  //  delay(10);
+
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
   Serial.begin(115200);
@@ -40,8 +49,16 @@ void loop()
   if (Serial1.available()) {
     digitalWrite(LED, HIGH);
     int c = Serial1.read();
+    if (c != '9' && index_data == 0){ // Do not start if the first number is not 9
+      index_data == 0;
+      while(Serial1.available()) // Must be tested!
+      {
+        int a = Serial1.read(); // Clear all the following bit
+        delay(1);
+      }
+    }
     if (c == '\r') {
-      if (id) {
+      if (id) { // Get the first part of data (the data received from the sensor without RAT)
         //        Serial.write(";");
         Serial.flush();
         //        Serial.println("Send RAT");
@@ -52,22 +69,41 @@ void loop()
       id = !id;
     }
     else {
+      packet[index_data++] = c; // This array contains all raw data
+      if (index_data == 46) // 46th number
+      {
+        c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
+      }
+      if ((index_data >= 17 && index_data != 20 && index_data != 33 && index_data != 35 && index_data < 37) || index_data >= 43) {
       Serial.write(c);
       Serial.flush();
-      packet[index_packet++] = c;
+      radiopacket[index_radio++] = c; // This array contains only data going to be sent
+      }
     }
-    if (index_packet >= PACKET_LENGTH)
+    if (index_data >= PACKET_LENGTH)
     {
       Serial.println(" Transmitted");
-      transmit(packet, PACKET_LENGTH);
-      index_packet = 0;
+      transmit(radiopacket, RADIO_PACKET_LENGTH);
+      index_data = 0;
+      index_radio = 0;
+      memset(&radiopacket[0], 0, sizeof(radiopacket)); // clear memory with null
       memset(&packet[0], 0, sizeof(packet)); // clear memory with null
+      //      digitalWrite(RST_POW, HIGH);
+      //      rf95.sleep();
+      //      delay(2*PERIOD);
+      //      digitalWrite(RST_POW, LOW);
     }
     digitalWrite(LED, LOW);
   }
   else {
     //    Serial.println("Sleeping");
+
+    //      digitalWrite(RST_POW, HIGH);
     rf95.sleep();
+    //      delay(2*PERIOD);
+    //      digitalWrite(RST_POW, LOW);
+    //      delay(2*PERIOD);
+
     Serial1.write("SRD\r");
     Serial1.flush();
     delay(10);
@@ -86,7 +122,8 @@ void loop()
       int b = Serial1.read(); // Clear response of SRA command
       count_out++;
     }
-    delay(PERIOD/32); // Must be at least 100 ms
+    delay(PERIOD / 32); // Must be at least 100 ms
+
     //    Serial.println();
   }
 }
@@ -131,10 +168,10 @@ void battery_level() {
   Serial.flush();
 }
 
-void transmit(char packet[], int PACKET_LENGTH) {
+void transmit(char radiopacket[], int RADIO_PACKET_LENGTH) {
   //  Serial.println("Sending");
   delay(10);
-  rf95.send((uint8_t *)packet, PACKET_LENGTH);
+  rf95.send((uint8_t *)radiopacket, RADIO_PACKET_LENGTH);
   delay(10);
   rf95.waitPacketSent();
   //  Serial.println("End Sending");

@@ -12,7 +12,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 #define RST_READER 5 // Reset reader always HIGH
 #define DATA_NUM 30 // Number of bytes receieved from sensor
 #define LED 13
-#define PERIOD 20// how long roughly (second) between two reading
+#define PERIOD 1// how long roughly (second) between two reading
 
 #define VBATPIN A7 // Pin 9 (analog 7)
 

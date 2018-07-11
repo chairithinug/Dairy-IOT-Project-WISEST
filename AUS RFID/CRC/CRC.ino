@@ -54,7 +54,7 @@ void loop()
       id = !id;
     }
     else {
-      if (index_packet == 45) // 46th number but before increment
+      if (index_packet == 45) // 46th number but index 45 before increment
       {
         c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
       }
