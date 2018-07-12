@@ -17,111 +17,96 @@ String HOST = "api.thingspeak.com";
 String PORT_NET = "80";
 String field1 = "field1";
 String field2 = "field2";
-int countTrueCommand;
-int countTimeCommand;
+
+int count_command = 0;
+int command_time = 0;
 boolean found = false;
+uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
 void setup()
 {
   radio_init();
   Serial.begin(115200);
-  delay(100);
-  //WiFi
   Serial1.begin(115200);
-  sendCommand("AT", 5, "OK");
-  sendCommand("AT+CWMODE=1", 5, "OK");
-  sendCommand("AT+CWJAP=\"" + AP + "\",\"" + PASS + "\"", 20, "OK");
+  wifi_init();
+  memset(&buf[0], 0, RH_RF95_MAX_MESSAGE_LEN); // Clear memory with null
+  digitalWrite(LED, LOW);
 }
 
 void loop()
 {
-  digitalWrite(LED, LOW);
   if (rf95.available())
   {
     digitalWrite(LED, HIGH);
-    delay(100); // to make LED visible  
-    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (rf95.recv(buf, &len))
-    {
       Serial.println((char*) buf);
-      //Serial.print(" RSSI: "); // received signal strength indicator (the less negative the better)
-      //Serial.println(rf95.lastRssi(), DEC);
-    }
     else
       Serial.println("Receive failed");
 
-    // Posting to channel
-    String getData = "GET /update?api_key=" + API + "&" + field1 + "=x" + String((char*) buf) + "&" + field2 + "=" + rf95.lastRssi(); // Added x at the beginning so that it is considered string in Matlab table.
-    sendCommand("AT+CIPMUX=1", 5, "OK");
-    sendCommand("AT+CIPSTART=0,\"TCP\",\"" + HOST + "\"," + PORT_NET, 15, "OK");
-    sendCommand("AT+CIPSEND=0," + String(getData.length() + 4), 4, ">");
-    digitalWrite(LED, HIGH);
-    Serial1.println(getData);
-    delay(1500);
+    post2API();
+    delay(100);
     digitalWrite(LED, LOW);
-    countTrueCommand++;
-    sendCommand("AT+CIPCLOSE=0", 5, "OK");
   }
 }
 
-// (ESP8266) send command and wait for expected reply before timeout
-void sendCommand(String command, int maxTime, char readReplay[]) {
-  Serial.print(countTrueCommand);
-  Serial.print(". at command => ");
-  Serial.print(command);
-  Serial.print(" ");
-  while (countTimeCommand < (maxTime * 1))
-  {
-    Serial1.println(command);//at+cipsend
-    if (Serial1.find(readReplay)) //ok
-    {
-      found = true;
-      break;
-    }
-    countTimeCommand++;
-  }
-  if (found == true)
-  {
-    Serial.println("OYI");
-    countTrueCommand++;
-    countTimeCommand = 0;
-  }
-  if (found == false)
-  {
-    Serial.println("Fail");
-    countTrueCommand = 0;
-    countTimeCommand = 0;
-  }
-  found = false;
-}
-
-void radio_init(){
+void radio_init() {
   pinMode(LED, OUTPUT);
-  pinMode(RFM95_RST, OUTPUT);  
-  digitalWrite(RFM95_RST, HIGH);
+  pinMode(RFM95_RST, OUTPUT);
   // manual reset
   digitalWrite(RFM95_RST, LOW);
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
-  
-  while (!rf95.init()) {
-    Serial.println("LoRa failed");
+  while (!rf95.init())
     while (1);
-  }
-  Serial.println("LoRa OK!");
-  // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
-  if (!rf95.setFrequency(RF95_FREQ)) {
-    Serial.println("setFrequency failed");
+  if (!rf95.setFrequency(RF95_FREQ))
     while (1);
-  }
-  Serial.print("Set Freq to: ");
-  Serial.println(RF95_FREQ);
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-  // The default transmitter power is 13dBm, using PA_BOOST.
-  // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
-  // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
+}
+
+void wifi_init() {
+  sendCommand("AT", 5, "OK"); // Check ESP8266
+  sendCommand("AT+CWMODE=1", 5, "OK"); // Set station mode
+  sendCommand("AT+CWJAP=\"" + AP + "\",\"" + PASS + "\"", 20, "OK"); // Connect to WiFi
+}
+
+// (ESP8266) send command and wait for expected reply before timeout
+void sendCommand(String command, int maxTime, char readReplay[]) {
+  Serial.print(count_command);
+  Serial.print(". ");
+  Serial.print(command);
+  Serial.println(" ");
+  while (command_time < (maxTime * 1))
+  {
+    Serial1.println(command); // AT+CIPSEND
+    if (Serial1.find(readReplay)) // OK
+    {
+      found = true;
+      break;
+    }
+    command_time++;
+  }
+  if (found == true)
+  {
+    count_command++;
+    command_time = 0;
+  }
+  if (found == false)
+  {
+    Serial.println("Fail");
+    count_command = 0;
+    command_time = 0;
+  }
+  found = false;
+}
+
+void post2API() {
+  String getData = "GET /update?api_key=" + API + "&" + field1 + "=x" + String((char*) buf) + "&" + field2 + "=" + rf95.lastRssi(); // Add x at the beginning so that it is considered string in Matlab table.
+  sendCommand("AT+CIPMUX=1", 5, "OK"); // Multiple connection
+  sendCommand("AT+CIPSTART=0,\"TCP\",\"" + HOST + "\"," + PORT_NET, 15, "OK"); // Establish TCP
+  sendCommand("AT+CIPSEND=0," + String(getData.length() + 4), 4, ">"); // Set data length
+  Serial1.println(getData);
+  sendCommand("AT+CIPCLOSE=0", 5, "OK"); // Close TCP
 }
 

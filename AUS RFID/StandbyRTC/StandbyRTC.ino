@@ -42,13 +42,16 @@ void setup()
 
   rtc.begin();
 
-  rtc.setTime(hours, minutes, seconds);
-  rtc.setDate(day, month, year);
+  rtc.setSeconds(0);
+//  rtc.setTime(hours, minutes, seconds);
+//  rtc.setDate(day, month, year);
 
-  rtc.setAlarmDate(17, 11, 15);
-  rtc.setAlarmTime(17, 00, 10);
-  rtc.enableAlarm(rtc.MATCH_YYMMDDHHMMSS);
-
+  rtc.setAlarmSeconds(10);
+//  rtc.setAlarmDate(17, 11, 15);
+//  rtc.setAlarmTime(17, 00, 10);
+//  rtc.enableAlarm(rtc.MATCH_YYMMDDHHMMSS);
+  rtc.enableAlarm(rtc.MATCH_SS);
+  
   rtc.attachInterrupt(alarmMatch);
 
   rtc.standbyMode();
@@ -61,16 +64,14 @@ void loop()
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
-    
+    rtc.setSeconds(0);
     alarmrang = false;
-    rtc.setTime(hours, minutes, seconds);
-    rtc.setDate(day, month, year);
-    
-    rtc.setAlarmDate(17, 11, 15);
-    rtc.setAlarmTime(17, 00, 10);
-    rtc.enableAlarm(rtc.MATCH_YYMMDDHHMMSS);
-    
-    rtc.attachInterrupt(alarmMatch);
+//    rtc.setTime(hours, minutes, seconds);
+//    rtc.setDate(day, month, year);
+//    rtc.setAlarmDate(17, 11, 15);
+//    rtc.setAlarmTime(17, 00, 10);
+//    rtc.enableAlarm(rtc.MATCH_YYMMDDHHMMSS);
+//    rtc.attachInterrupt(alarmMatch);
     
   }
   rtc.standbyMode();    // Sleep until next alarm match
@@ -78,5 +79,5 @@ void loop()
 
 void alarmMatch()
 {
-  alarmrang = true;
+  alarmrang = true; // this cannot have any delay inside. Recommend sending some flag like this.
 }
