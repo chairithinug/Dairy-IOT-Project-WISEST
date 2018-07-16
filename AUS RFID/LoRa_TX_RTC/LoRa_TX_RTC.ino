@@ -12,22 +12,24 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 RTCZero rtc;
 #define PERIOD 20// How long roughly (ms) between two reading
 
-#define LED 13 // On-board LED
+//#define LED 13 // On-board LED
+#define VBATPIN A7 // Pin 9 (analog 7)
 
 const int PACKET_LENGTH = 48;
-const int RADIO_PACKET_LENGTH = 23;
+const int RADIO_PACKET_LENGTH = 28;
 int index_data = 0;
 int index_radio = 0;
 char packet[PACKET_LENGTH] = {}; // Contains raw data
 char radiopacket[RADIO_PACKET_LENGTH] = {}; // Contains edited data that is going to be sent
 boolean id = true;
 boolean alarmrang = false;
+boolean sent = false;
 
 void setup()
 {
   Serial.begin(9600);
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
+//  pinMode(LED, OUTPUT);
+//  digitalWrite(LED, LOW);
   radio_init();
   Serial1.begin(9600);
   memset(&packet[0], 0, sizeof(packet)); // initialize memory with null
@@ -46,8 +48,9 @@ void loop()
     // Enable reader
     reader_enable();
     delay(500);
+    sent = false;
     while (Serial1.available()) {
-      digitalWrite(LED, HIGH);
+//      digitalWrite(LED, HIGH);
       int c = Serial1.read();
       if (c != '9' && index_data == 0) { // Do not start if the first number is not 9
         index_data == 0;
@@ -74,22 +77,30 @@ void loop()
       }
       if (index_data >= PACKET_LENGTH)
       {
+        itoa(battery_level(), radiopacket+23, 10);
         transmit(radiopacket, RADIO_PACKET_LENGTH);
+        sent = true;
         index_data = 0;
         index_radio = 0;
         memset(&radiopacket[0], 0, sizeof(radiopacket)); // Clear memory with null
         memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
 
         // Turn off radio and reader
-        digitalWrite(LED, LOW);
+//        digitalWrite(LED, LOW);
         rf95.sleep();
         reader_disable();
         alarmrang = false;
         rtc.setSeconds(0); // Go back to sleep
       }
     }
+    if (!sent){
+      char radiopacket[] = "xxxxxxxxxxxxxxxxxxxxxxx";
+      itoa(battery_level(), radiopacket+23, 10);
+      transmit(radiopacket, RADIO_PACKET_LENGTH);
+      memset(&radiopacket[0], 0, sizeof(radiopacket)); // Clear memory with null
+    }
     
-    digitalWrite(LED, LOW);
+//    digitalWrite(LED, LOW);
     rf95.sleep();
     reader_disable();
     alarmrang = false;
@@ -151,4 +162,13 @@ void reader_disable() {
 void transmit(char radiopacket[], int RADIO_PACKET_LENGTH) {
   rf95.send((uint8_t *)radiopacket, RADIO_PACKET_LENGTH);
   rf95.waitPacketSent();
+}
+
+int battery_level() {
+  float vbat = analogRead(VBATPIN);
+  vbat *= 2;    // we divided by 2, so multiply back
+  vbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+  vbat /= 1024; // convert to voltage
+  vbat *= 10000; // remove decimal point to int
+  return (int) vbat;
 }
