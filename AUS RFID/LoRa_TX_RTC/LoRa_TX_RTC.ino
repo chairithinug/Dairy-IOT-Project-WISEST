@@ -10,7 +10,7 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 RTCZero rtc;
-#define PERIOD 20// How long roughly (ms) between two reading
+#define PERIOD 30// How long roughly (ms) between two reading
 
 //#define LED 13 // On-board LED
 #define VBATPIN A7 // Pin 9 (analog 7)
@@ -27,7 +27,6 @@ boolean sent = false;
 
 void setup()
 {
-  Serial.begin(9600);
 //  pinMode(LED, OUTPUT);
 //  digitalWrite(LED, LOW);
   radio_init();

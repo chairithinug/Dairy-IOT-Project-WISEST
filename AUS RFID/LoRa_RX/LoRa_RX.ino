@@ -43,7 +43,7 @@ void loop()
       Serial.println((char*) buf);
     else
       Serial.println("Receive failed");
-
+z
     post2API();
     delay(100);
     digitalWrite(LED, LOW);
