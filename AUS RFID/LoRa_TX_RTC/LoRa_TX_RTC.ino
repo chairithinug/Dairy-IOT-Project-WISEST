@@ -14,6 +14,7 @@ RTCZero rtc;
 
 //#define LED 13 // On-board LED
 #define VBATPIN A7 // Pin 9 (analog 7)
+#define NMOSPIN 6
 
 const int PACKET_LENGTH = 48;
 const int RADIO_PACKET_LENGTH = 28;
@@ -27,8 +28,9 @@ boolean sent = false;
 
 void setup()
 {
-//  pinMode(LED, OUTPUT);
-//  digitalWrite(LED, LOW);
+  //  pinMode(LED, OUTPUT);
+  //  digitalWrite(LED, LOW);
+  pinMode(NMOSPIN, OUTPUT);
   radio_init();
   Serial1.begin(9600);
   memset(&packet[0], 0, sizeof(packet)); // initialize memory with null
@@ -49,7 +51,7 @@ void loop()
     delay(500);
     sent = false;
     while (Serial1.available()) {
-//      digitalWrite(LED, HIGH);
+      //      digitalWrite(LED, HIGH);
       int c = Serial1.read();
       if (c != '9' && index_data == 0) { // Do not start if the first number is not 9
         index_data == 0;
@@ -76,7 +78,7 @@ void loop()
       }
       if (index_data >= PACKET_LENGTH)
       {
-        itoa(battery_level(), radiopacket+23, 10);
+        itoa(battery_level(), radiopacket + 23, 10);
         transmit(radiopacket, RADIO_PACKET_LENGTH);
         sent = true;
         index_data = 0;
@@ -85,21 +87,21 @@ void loop()
         memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
 
         // Turn off radio and reader
-//        digitalWrite(LED, LOW);
+        //        digitalWrite(LED, LOW);
         rf95.sleep();
         reader_disable();
         alarmrang = false;
         rtc.setSeconds(0); // Go back to sleep
       }
     }
-    if (!sent){
+    if (!sent) {
       char radiopacket[] = "xxxxxxxxxxxxxxxxxxxxxxx";
-      itoa(battery_level(), radiopacket+23, 10);
+      itoa(battery_level(), radiopacket + 23, 10);
       transmit(radiopacket, RADIO_PACKET_LENGTH);
       memset(&radiopacket[0], 0, sizeof(radiopacket)); // Clear memory with null
     }
-    
-//    digitalWrite(LED, LOW);
+
+    //    digitalWrite(LED, LOW);
     rf95.sleep();
     reader_disable();
     alarmrang = false;
@@ -137,25 +139,27 @@ void alarmMatch()
 }
 
 void reader_enable() {
-  Serial1.write("SRA\r");
-  Serial1.flush();
-  delay(10);
-  int count_out = 0;
-  while (Serial1.available() && count_out < 3) {
-    int c = Serial1.read(); // Clear response of SRA command
-    count_out++;
-  }
+  //  Serial1.write("SRA\r");
+  //  Serial1.flush();
+  //  delay(10);
+  //  int count_out = 0;
+  //  while (Serial1.available() && count_out < 3) {
+  //    int c = Serial1.read(); // Clear response of SRA command
+  //    count_out++;
+  //  }
+  digitalWrite(NMOSPIN, HIGH);
 }
 
 void reader_disable() {
-  Serial1.write("SRD\r");
-  Serial1.flush();
-  delay(10);
-  int count_out = 0;
-  while (Serial1.available() && count_out < 3) {
-    int c = Serial1.read(); // Clear response of SRD command
-    count_out++;
-  }
+  //  Serial1.write("SRD\r");
+  //  Serial1.flush();
+  //  delay(10);
+  //  int count_out = 0;
+  //  while (Serial1.available() && count_out < 3) {
+  //    int c = Serial1.read(); // Clear response of SRD command
+  //    count_out++;
+  //  }
+  digitalWrite(NMOSPIN, LOW);
 }
 
 void transmit(char radiopacket[], int RADIO_PACKET_LENGTH) {

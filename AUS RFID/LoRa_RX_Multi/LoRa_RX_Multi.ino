@@ -9,7 +9,7 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 #define LED 13 // On-board LED
-#define NUMBER_OF_DEVICES 2 //TODO
+#define NUMBER_OF_DEVICES 1 //TODO
 #define DATA_LENGTH 28
 #define ID_LENGTH 15
 
