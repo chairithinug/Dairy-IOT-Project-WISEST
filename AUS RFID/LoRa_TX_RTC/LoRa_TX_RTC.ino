@@ -16,7 +16,7 @@ RTCZero rtc;
 #define VBATPIN A7 // Pin 9 (analog 7)
 #define NMOSPIN 6
 
-const int PACKET_LENGTH = 49;
+const int PACKET_LENGTH = 48;
 const int RADIO_PACKET_LENGTH = 28;
 int index_data;
 int index_radio;
@@ -29,12 +29,11 @@ boolean sent = false;
 void setup()
 {
   pinMode(NMOSPIN, OUTPUT);
+  reader_disable();
   radio_init();
   Serial1.begin(9600);
   clear_packets_n_indices();
   rf95.sleep();
-  reader_disable();
-  delay(500);
   alarm_init();
 }
 
@@ -42,7 +41,7 @@ void loop()
 {
   if (alarmrang) {
     reader_enable();
-    delay(500);
+    delay(1000);
     sent = false;
     while (Serial1.available()) {
       int c = Serial1.read();
@@ -52,26 +51,29 @@ void loop()
         id = !id;
       }
       else {
-        packet[index_data++] = c; // This array contains all raw data
-        if (index_data == 47) // 46th number
-          c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
-        if ((index_data >= 18 && index_data != 21 && index_data != 34 && index_data != 36 && index_data < 38) || index_data >= 44)
-          radiopacket[index_radio++] = c; // This array contains only data (Country,ID,Animal,Data,Temp) going to be sent
-      }
-      if (index_data >= PACKET_LENGTH) {
-        itoa(battery_level(), radiopacket + 23, 10); // Attach battery level at the end of string stream
-        transmit(radiopacket, RADIO_PACKET_LENGTH);
-        sent = true;
-        clear_packets_n_indices();
-        break;
+        if (c != '\0') {
+          packet[index_data++] = c; // This array contains all raw data
+          if (index_data == 46)
+            c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
+          if ((index_data >= 17 && index_data != 20 && index_data != 33 && index_data != 35 && index_data < 37) || index_data >= 43)
+            radiopacket[index_radio++] = c; // This array contains only data (Country,ID,Animal,Data,Temp) going to be sent
+        }
+        if (index_data >= PACKET_LENGTH && !sent) {
+          reader_disable();
+          itoa(battery_level(), radiopacket + 23, 10); // Attach battery level at the end of string stream
+          transmit(radiopacket, RADIO_PACKET_LENGTH);
+          sent = true;
+          break;
+        }
       }
     }
     if (!sent) {
+      reader_disable();
       char radiopacket[] = "xxxxxxxxxxxxxxxxxxxxxxx";
       itoa(battery_level(), radiopacket + 23, 10);
       transmit(radiopacket, RADIO_PACKET_LENGTH);
-      clear_packets_n_indices();
     }
+    clear_packets_n_indices();
     go_sleep();
   }
   rtc.standbyMode(); // Sleep until next alarm match
@@ -131,8 +133,8 @@ void transmit(char radiopacket[], int RADIO_PACKET_LENGTH) {
 }
 
 void go_sleep() {
-  rf95.sleep();
   reader_disable();
+  rf95.sleep();
   alarmrang = false;
   rtc.setSeconds(0); // End of the iteration. Go back to sleep
 }

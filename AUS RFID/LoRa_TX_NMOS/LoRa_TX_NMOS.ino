@@ -25,21 +25,20 @@ boolean sent = false;
 void setup()
 {
   pinMode(NMOSPIN, OUTPUT);
+  reader_disable();
   radio_init();
   Serial.begin(9600);
   Serial1.begin(9600);
   memset(&packet[0], 0, sizeof(packet)); // initialize memory with null
   memset(&radiopacket[0], 0, sizeof(radiopacket)); // initialize memory with null
   rf95.sleep();
-  reader_disable();
-  delay(500);
 }
 
 void loop()
 {
   // Enable reader
   reader_enable();
-  delay(500);
+  delay(800);
   sent = false;
   while (Serial1.available()) {
     int c = Serial1.read();
@@ -57,36 +56,32 @@ void loop()
         c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
       if ((index_data >= 18 && index_data != 21 && index_data != 34 && index_data != 36 && index_data < 38) || index_data >= 44) {
         radiopacket[index_radio++] = c; // This array contains only data (Country,ID,Animal,Data,Temp) going to be sent
-        Serial.write(c);
       }
+      Serial.write(c);
     }
-    if (index_data >= PACKET_LENGTH)
+    if (index_data >= PACKET_LENGTH && !sent)
     {
+      reader_disable();
       itoa(battery_level(), radiopacket + 23, 10);
       transmit(radiopacket, RADIO_PACKET_LENGTH);
       sent = true;
-      index_data = 0;
-      index_radio = 0;
-      memset(&radiopacket[0], 0, sizeof(radiopacket)); // Clear memory with null
-      memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
 
-      // Turn off radio and reader
+      Serial.println();
       rf95.sleep();
-      reader_disable();
     }
   }
   if (!sent) {
     char radiopacket[] = "xxxxxxxxxxxxxxxxxxxxxxx";
     itoa(battery_level(), radiopacket + 23, 10);
     transmit(radiopacket, RADIO_PACKET_LENGTH);
-    index_data = 0;
-    index_radio = 0;
-    memset(&radiopacket[0], 0, sizeof(radiopacket)); // Clear memory with null
-    memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
   }
-  
-  rf95.sleep();
   reader_disable();
+  index_data = 0;
+  index_radio = 0;
+  memset(&radiopacket[0], 0, sizeof(radiopacket)); // Clear memory with null
+  memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
+  rf95.sleep();
+  
   delay(5000);
 }
 
