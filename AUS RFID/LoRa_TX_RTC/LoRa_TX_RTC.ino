@@ -29,11 +29,12 @@ boolean sent = false;
 void setup()
 {
   pinMode(NMOSPIN, OUTPUT);
-  reader_disable();
   radio_init();
   Serial1.begin(9600);
   clear_packets_n_indices();
   rf95.sleep();
+  reader_disable();
+  delay(500);
   alarm_init();
 }
 
@@ -41,7 +42,7 @@ void loop()
 {
   if (alarmrang) {
     reader_enable();
-    delay(1000);
+    delay(800);
     sent = false;
     while (Serial1.available()) {
       int c = Serial1.read();
@@ -53,22 +54,20 @@ void loop()
       else {
         if (c != '\0') {
           packet[index_data++] = c; // This array contains all raw data
-          if (index_data == 46)
+          if (index_data == 46) // 46th number
             c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
           if ((index_data >= 17 && index_data != 20 && index_data != 33 && index_data != 35 && index_data < 37) || index_data >= 43)
             radiopacket[index_radio++] = c; // This array contains only data (Country,ID,Animal,Data,Temp) going to be sent
         }
-        if (index_data >= PACKET_LENGTH && !sent) {
-          reader_disable();
-          itoa(battery_level(), radiopacket + 23, 10); // Attach battery level at the end of string stream
-          transmit(radiopacket, RADIO_PACKET_LENGTH);
-          sent = true;
-          break;
-        }
+      }
+      if (index_data >= PACKET_LENGTH) {
+        itoa(battery_level(), radiopacket + 23, 10); // Attach battery level at the end of string stream
+        transmit(radiopacket, RADIO_PACKET_LENGTH);
+        sent = true;
+        break;
       }
     }
     if (!sent) {
-      reader_disable();
       char radiopacket[] = "xxxxxxxxxxxxxxxxxxxxxxx";
       itoa(battery_level(), radiopacket + 23, 10);
       transmit(radiopacket, RADIO_PACKET_LENGTH);
@@ -127,8 +126,8 @@ void clear_packets_n_indices() {
   memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
 }
 
-void transmit(char radiopacket[], int RADIO_PACKET_LENGTH) {
-  rf95.send((uint8_t *)radiopacket, RADIO_PACKET_LENGTH);
+void transmit(char sendpacket[], int LENGTH) {
+  rf95.send((uint8_t *)sendpacket, LENGTH);
   rf95.waitPacketSent();
 }
 

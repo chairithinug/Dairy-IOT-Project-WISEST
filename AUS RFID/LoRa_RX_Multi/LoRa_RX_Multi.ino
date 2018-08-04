@@ -9,8 +9,8 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 #define LED 13 // On-board LED
-#define NUMBER_OF_DEVICES 1 //TODO
-#define DATA_LENGTH 28
+#define NUMBER_OF_DEVICES 2 //TODO
+#define DATA_LENGTH 18
 #define ID_LENGTH 15
 
 String AP = "UWNet"; // Need to register MAC address first (UWNet Only)
@@ -25,7 +25,7 @@ int count_command = 0;
 int command_time = 0;
 boolean found = false;
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-uint8_t ongoing_data[65];
+uint8_t ongoing_data[DATA_LENGTH * NUMBER_OF_DEVICES + 1];
 //char rssi[NUMBER_OF_DEVICES];
 
 char list_ID[NUMBER_OF_DEVICES * ID_LENGTH];
@@ -33,9 +33,13 @@ char ID[ID_LENGTH];
 char failed_ID[] = "xxxxxxxxxxxxxxx"; // sign of a failed device
 int logged_devices = 0; // when a device has valid id and is registered the first time of that iteration
 int bad_devices = 0; // when a device does not have a valid id, or a device fails
+char OUT[2] = "1"; // a response to a sender
+int comm_count = 0; // used as a timeout.
 
 void setup()
 {
+  //  while (!Serial)
+  //    delay(1);
   radio_init();
   Serial.begin(115200);
   Serial1.begin(115200);
@@ -49,8 +53,8 @@ void setup()
 
 void loop()
 {
-  if (rf95.available())
-  {
+  if (rf95.available()) {
+    transmit(OUT, sizeof(OUT)); // signal that it received data
     digitalWrite(LED, HIGH);
     uint8_t len = sizeof(buf);
     if (rf95.recv(buf, &len))
@@ -61,39 +65,42 @@ void loop()
     strncpy(ID, (char*) buf, 15); // copy the ID to be compared
     Serial.print("This ID is ");
     Serial.println(ID);
-    
-    if (valid_ID(ID))
-    {
-      if (!check_repeated_ID(ID, logged_devices)) {
-        Serial.print(ID);
-        Serial.println(" logged");
-        Serial.println();
-        memcpy(list_ID + logged_devices * ID_LENGTH, ID, ID_LENGTH); // Add this ID to a list
 
-        memcpy(ongoing_data + logged_devices * DATA_LENGTH, buf, DATA_LENGTH); // Attach this data to a package
-        logged_devices++;
-      }
-    }
-    else
-    {
-      Serial.println("There is a problem with this device");
+    //    if (valid_ID(ID))
+    //    {
+    if (!check_repeated_ID(ID, logged_devices)) {
+      Serial.print(ID);
+      Serial.println(" logged");
       Serial.println();
-      bad_devices++;
+      memcpy(list_ID + logged_devices * ID_LENGTH, ID, ID_LENGTH); // Add this ID to a list
+
+      memcpy(ongoing_data + logged_devices * DATA_LENGTH, buf, DATA_LENGTH); // Attach this data to a package
+      logged_devices++;
     }
+    //    }
+    //    else
+    //    {
+    //      Serial.println("There is a problem with this device. Requesting data again.");
+    //      Serial.println();
+    //      bad_devices++;
+    //    }
+    comm_count++;
     memset(&ID[0], 0, sizeof(ID)); // Clear memory with null
     delay(100);
     digitalWrite(LED, LOW);
   }
-  if (logged_devices + bad_devices >= NUMBER_OF_DEVICES) {
+  if (logged_devices + bad_devices >= NUMBER_OF_DEVICES || comm_count > 2 * NUMBER_OF_DEVICES) { //comm_count is a timeout condition
     Serial.print("sending data from ");
     Serial.print(logged_devices);
     Serial.print(" out of ");
     Serial.print(NUMBER_OF_DEVICES);
     Serial.println(" devices");
-    Serial.println((char*) ongoing_data);
+    Serial.print((char*) ongoing_data);
+    Serial.println();
     post2API();
     logged_devices = 0;
-    bad_devices = 0;
+    //    bad_devices = 0;
+    comm_count = 0;
     memset(&ongoing_data[0], 0, sizeof(ongoing_data)); // Clear memory with null
     memset(&list_ID[0], 0, sizeof(list_ID)); // Clear memory with null
   }
@@ -125,10 +132,11 @@ void sendCommand(String command, int maxTime, char readReplay[]) {
   Serial.print(count_command);
   Serial.print(". ");
   Serial.print(command);
-  Serial.println(" ");
+  Serial.print(" ");
   while (command_time < (maxTime * 1))
   {
     Serial1.println(command); // AT+CIPSEND
+    Serial.write(Serial1.read());
     if (Serial1.find(readReplay)) // OK
     {
       found = true;
@@ -138,12 +146,13 @@ void sendCommand(String command, int maxTime, char readReplay[]) {
   }
   if (found == true)
   {
+    Serial.println("OK");
     count_command++;
     command_time = 0;
   }
   if (found == false)
   {
-    Serial.println("Fail");
+    Serial.println(" Fail");
     count_command = 0;
     command_time = 0;
   }
@@ -152,9 +161,9 @@ void sendCommand(String command, int maxTime, char readReplay[]) {
 
 void post2API() {
   String getData = "GET /update?api_key=" + API + "&" + field1 + "=x" + String((char*) ongoing_data);// + "&" + field2 + "=" + XXXXXXX; // Add x at the beginning so that it is considered string in Matlab table.
-  sendCommand("AT+CIPMUX=1", 5, "OK"); // Multiple connection
+  sendCommand("AT+CIPMUX=1", 20, "OK"); // Multiple connection
   sendCommand("AT+CIPSTART=0,\"TCP\",\"" + HOST + "\"," + PORT_NET, 15, "OK"); // Establish TCP
-  sendCommand("AT+CIPSEND=0," + String(getData.length() + 4), 4, ">"); // Set data length
+  sendCommand("AT+CIPSEND=0," + String(getData.length() + 50), 4, ">"); // Set data length
   Serial1.println(getData);
   sendCommand("AT+CIPCLOSE=0", 5, "OK"); // Close TCP
   Serial.println();
@@ -174,11 +183,17 @@ boolean check_repeated_ID(char* ID, int logged_devices) {
   }
   return false;
 }
-boolean valid_ID(char* ID) {
-   if (strncmp((char*) failed_ID, ID, ID_LENGTH) == 0)
-   {
-    return false;
-   }
-   return true;
+//boolean valid_ID(char* ID) {
+//  if (strncmp((char*) failed_ID, ID, ID_LENGTH) == 0)
+//  {
+//    return false;
+//  }
+//  return true;
+//}
+
+void transmit(char sendpacket[], int LENGTH) {
+  Serial.println("Replying someone");
+  rf95.send((uint8_t *)sendpacket, LENGTH);
+  rf95.waitPacketSent();
 }
 
