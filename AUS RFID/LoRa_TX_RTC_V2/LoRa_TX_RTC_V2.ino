@@ -10,7 +10,7 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 RTCZero rtc;
-#define PERIOD 10// How long roughly (sec) between two reading
+#define PERIOD 30// How long roughly (sec) between two reading
 #define SAMPLE_PER_WAKE 3
 
 //#define LED 13 // On-board LED
