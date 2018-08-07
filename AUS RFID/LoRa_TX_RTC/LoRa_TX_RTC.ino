@@ -16,7 +16,7 @@ RTCZero rtc;
 #define VBATPIN A7 // Pin 9 (analog 7)
 #define NMOSPIN 6
 
-const int PACKET_LENGTH = 49;
+const int PACKET_LENGTH = 48;
 const int RADIO_PACKET_LENGTH = 28;
 int index_data;
 int index_radio;
@@ -42,7 +42,7 @@ void loop()
 {
   if (alarmrang) {
     reader_enable();
-    delay(500);
+    delay(800);
     sent = false;
     while (Serial1.available()) {
       int c = Serial1.read();
@@ -52,17 +52,18 @@ void loop()
         id = !id;
       }
       else {
-        packet[index_data++] = c; // This array contains all raw data
-        if (index_data == 47) // 46th number
-          c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
-        if ((index_data >= 18 && index_data != 21 && index_data != 34 && index_data != 36 && index_data < 38) || index_data >= 44)
-          radiopacket[index_radio++] = c; // This array contains only data (Country,ID,Animal,Data,Temp) going to be sent
+        if (c != '\0') {
+          packet[index_data++] = c; // This array contains all raw data
+          if (index_data == 46) // 46th number
+            c = B00110001; // 31 in HEX which is 1 is ASCII. This bit is always one!
+          if ((index_data >= 17 && index_data != 20 && index_data != 33 && index_data != 35 && index_data < 37) || index_data >= 43)
+            radiopacket[index_radio++] = c; // This array contains only data (Country,ID,Animal,Data,Temp) going to be sent
+        }
       }
       if (index_data >= PACKET_LENGTH) {
         itoa(battery_level(), radiopacket + 23, 10); // Attach battery level at the end of string stream
         transmit(radiopacket, RADIO_PACKET_LENGTH);
         sent = true;
-        clear_packets_n_indices();
         break;
       }
     }
@@ -70,8 +71,8 @@ void loop()
       char radiopacket[] = "xxxxxxxxxxxxxxxxxxxxxxx";
       itoa(battery_level(), radiopacket + 23, 10);
       transmit(radiopacket, RADIO_PACKET_LENGTH);
-      clear_packets_n_indices();
     }
+    clear_packets_n_indices();
     go_sleep();
   }
   rtc.standbyMode(); // Sleep until next alarm match
@@ -125,14 +126,14 @@ void clear_packets_n_indices() {
   memset(&packet[0], 0, sizeof(packet)); // Clear memory with null
 }
 
-void transmit(char radiopacket[], int RADIO_PACKET_LENGTH) {
-  rf95.send((uint8_t *)radiopacket, RADIO_PACKET_LENGTH);
+void transmit(char sendpacket[], int LENGTH) {
+  rf95.send((uint8_t *)sendpacket, LENGTH);
   rf95.waitPacketSent();
 }
 
 void go_sleep() {
-  rf95.sleep();
   reader_disable();
+  rf95.sleep();
   alarmrang = false;
   rtc.setSeconds(0); // End of the iteration. Go back to sleep
 }
