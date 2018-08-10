@@ -1,47 +1,77 @@
 # Overview
 This is a private repository for my project at WISEST lab during Summer 2018 as an undergraduate research assistant. This project is a dairy IoT, using chiefly MATLAB and Arduino (C++). MATLAB is responsible for gathering data from experiments and finding calibration coefficients. Arduino programs a microcontroller board. The goal is to monitor the core temperature of livestock and to wirelessly send the data through the internet.
-# Requirements
-1.	Arduino Uno connected to your PC via cable
-2.	The RFID and sensor circuit 
-3.	The sensor
-4.	MATLAB 2018a (earlier versions might not support all functionalities) installed 
-5.	MATLAB Support Package for Arduino Hardware installed and setup properly	
-# What these programs do
-## Run_Improved_V2.mlapp
-Run_Improved_V2.mlapp gathers the number of samples and displays the raw data plot and the calibrated plot. Linear regression coefficients can be applied and adjusted before the reading starts. After the reading has done, the data will be save automatically and once again before the program is closed. The LED light indicates the data availability. It becomes yellow when there is a problem with the input data, becomes red if no input data is read, turns black when the program finishes or is ready. Once data is collected, it is automatically saved to a CSV file with a timestamp.
 
-## Run_Monitoring.mlapp
-Run_Monitoring.mlapp is similar to Run_Improved_v2.mlapp. It keeps reading data until it is stopped by users. It has an ability to breakdown data and save data into multiple files every X second specified by users. In addition to those LEDs, Run_Monitoring.mlapp has a blue LED indicating a pause. Unlike the first program, this program does NOT save when closed the program window. However, the data should be saved when “Stop” is pressed.
-# How to use
-## "Run_Improved_V2.mlapp" for known sample number
-1.	Connect Arduino to your PC.
-2.	Double-click on the program “Run_Improved_V2.mlapp”.
-3.	Change port name to match the port Arduino connected to. You can also check with Device Manager in your Control Panel and look for Port section.
-4.	Click “Connect” button to open serial communication between your PC and Arduino.
-5.	Adjust the number of samples you wish.
-6.	Check a box called “Activate” and adjust the coefficients properly, if needed.
-7.	Place RFID antenna close to the sensor. The LED on the RFID reader should blink, indicating that there is a data.
-8.	Click “Start” button when you are ready.
-9.	Wait until the LED turns black again.
-10.	If you wish to collect more data, simply click “Reset” again and press “Start”
-11.	Repeat step 8-10.
-12.	Once you are satisfied with data, close the window. Doing this prompts a dialogue block.
-13.	Select “Yes” if you wish to exit and save data or select “No” if you accidentally click on the close button.
+# Components used
+1. Adafruit Feather M0 LoRa MCU x2
+2. ESP8266 WiFi Module
+3. Priority1 RFIDRW-E-TTL Reader with an antenna
+4. Bio temperature sensors
+5. UBBL24-Fl-TH 7.4V 4800 mAh Batteries
+6. MCP1702-3303 LDO
+7. VN4012 NMOS
+8. 1 uF Capacitors
+9. Clipping Diodes (not used previously but recommended on RX-TX)
 
-## "Run_Monitoring.mlapp" for monitoring
-1.	Connect Arduino to your PC.
-2.	Double-click on the program “Run_Monitoring.mlapp”.
-3.	Change port name to match the port Arduino connected to. You can also check with Device Manager in your Control Panel and look for Port section.
-4.	Click “Connect” button to open serial communication between your PC and Arduino.
-5.	Check a box for “save multiple files” if wish to divide data into many smaller files and specify how long in second between each file.
-6.	Check a box for “activate” and adjust the coefficients properly, if require calibrated data.
-7.	Place RFID antenna close to the sensor. The LED on the RFID reader should blink, indicating that there is data.
-8.	Click “Start” button when you are ready.
-9.	If necessary, click pause to temporarily stop the program. Note that this does not stop the timer within the program.
-10.	When achieve enough data as desired, click stop to stop reading and save the data.
-11.	If wish to collect more data, press “Start”.
-12.	Repeat step 8-11.
-13.	Once you are satisfied with data, close the window. Doing this prompts a dialogue block.
-14.	Select “Yes” if wish to exit or select “No” if accidentally click on the close button.
-# Troubleshooting
+# Softwares used
+1. Arduino IDE
+2. Matlab R2018a
+3. Altium Designer
+4. Git
+5. Microsoft Office
+6. Google Chrome
 
+# Libraries used
+1. RH_RF95 LoRa library
+2. RTCZero Timer/Low power library
+3. SPI (may not actually needed)
+
+# Codes
+1. LoRa_RX_Multi		HUB's code
+2. LoRa_TX_RTC_V2		Device's code
+3. LoRa_TX_NMOS			Debugging code without a sleep mode
+4. Online_Matlab_Code	Thingspeak code
+
+# Schematics
+1. High-level Schematics
+2. Detailed Schematics of a Hub
+3. Detailed Schematics of a Device
+
+# Useful resources
+1. ESP8266 AT Command
+2. Adafruit Feather M0 LoRa schematics
+3. Datasheets of components
+
+# Words of caution when integrating parts
+1. Do not connect V+ and GND of a battery. It could explode.
+2. Be careful when using a DMM. Do not let a probe touch any 2 pins. This creates a short circuit.
+3. Unplug or turn off a power supply first before removing any components.
+4. MCU and IC are sensitive parts. Be especially careful when connecting them and notice the Vin of them.
+5. When doing a hardware debug, start where the problem most likely happens.
+
+# Setting up a device
+1. Program a device. Double-push the reset button and wait for a LED to blink, if needed.
+2. Be careful when messing with Sleep mode/Standby mode of MCU. It might brick the device.
+3. 
+4.
+5.
+6. If needed, use LoRa_TX_NMOS to debug a device. That program does not have a sleep mode in it.
+
+# Setting up a hub
+
+# Setting up a Thingspeak.com
+1. Create a channel that takes inputs from a hub. And then use Matlab Analysis to analyze the data.
+2. 
+3.
+4.
+5.
+
+
+# Troubleshooting guide
+1. Check the antenna connection.
+2. Check the power connection and power level.
+3. Check the prototype board connection.
+4. Check the software problem.
+5. Use a DMM to test a voltage at any points.
+6. Use an o
+
+Contact: Anapat Chairithinugull Email: chairithinug@wisc.edu

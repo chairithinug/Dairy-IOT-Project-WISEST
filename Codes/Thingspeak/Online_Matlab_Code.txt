@@ -1,0 +1,49 @@
+% TODO
+listOfIDs = cellstr(['985141001125133';'985141001125134';'985141001125135';'985141001125136';'985141001125137';'985141001125138';'985141001125139';'985141001125140']);
+
+readChannelID = 525047;
+readAPIKey = '2QHSGE0WK4GY7DJ0';
+
+writeChannelID = 554593;
+writeAPIKey = '24O9MCLIAYNRE2DY';
+
+% Linear Coeff
+p1 = 1.1078;
+p2 = -4.79753;
+
+DATA_LENGTH = 18;
+
+%% Read Data %%
+table = thingSpeakRead(readChannelID,'OutputFormat', 'table', 'ReadKey', readAPIKey)
+data = char(table{1,2});
+length = length(data);
+numberOfData = round(length/DATA_LENGTH)
+temp = zeros(1, size(listOfIDs,1));
+for i = 1:numberOfData
+    shiftBit = (i-1)*DATA_LENGTH;
+    id = reshape(data(2 + shiftBit:16 + shiftBit),15,[]).';
+    for j = 1:size(listOfIDs,1)
+        if id == char(listOfIDs(j))
+            fprintf("FOUND\n");
+            field_number = j;
+            break;
+        else
+            fprintf("NOT FOUND\n");
+        end
+    end
+        fprintf("ID: %s ",id);    
+        try
+            temp_res = reshape(data(17 + shiftBit:19 + shiftBit),3,[]).'
+            temp(field_number) = str2num(temp_res)/10;
+            % Calibrate
+            temp(field_number) = p1 * temp(field_number) + p2;
+            fprintf("Temp: %.4f C\n", temp(field_number));
+        catch
+            
+        end
+end
+temp(temp==0) = nan;
+
+%% Write Data %%
+thingSpeakWrite(writeChannelID, [temp(1),temp(2),temp(3),temp(4),temp(5),temp(6),temp(7),temp(8)], 'WriteKey', writeAPIKey);    
+fprintf("Posted\n");        
