@@ -1,5 +1,5 @@
 # Overview
-This is a private repository for my project at WISEST lab during Summer 2018 as an undergraduate research assistant. This project is a dairy IoT, using chiefly MATLAB and Arduino (C++/C). MATLAB is responsible for gathering data from experiments and finding calibration coefficients. Arduino programs a microcontroller board. The goal is to monitor the core temperature of livestock and to wirelessly send the data through the internet.
+This is a private repository for my project at WISEST lab during Summer 2018 as an undergraduate research assistant. This project is a dairy IoT, using chiefly Arduino (C++/C) and MATLAB. MATLAB is responsible for gathering data from experiments and finding calibration coefficients. Arduino programs a microcontroller board. The goal is to monitor the core temperature of livestock and to wirelessly send the data through the internet.
 
 # Components used
 1. Adafruit Feather M0 LoRa MCU x2
@@ -105,5 +105,8 @@ This is a private repository for my project at WISEST lab during Summer 2018 as 
 2. Check the power connection and power level.
 3. Check the software problem.
 4. Check the prototype board connection.
+
+# Final words
+This project was not possible without Prof. Kim's, Jingjie's, Hanwook's and others' helps. I really appreciate all helps and advices I received and I am grateful to be given a trust to handle this project.
 
 Contact: Anapat Chairithinugull Email: chairithinug@wisc.edu Cell: +1 6087729985
